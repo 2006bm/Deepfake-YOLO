@@ -1,0 +1,138 @@
+{
+  "generated_by": "preprocessing/make_report.py",
+  "generated_at": "2026-10-08T09:58:35",
+  "dataset": "FaceForensics++",
+  "split_source": "official (video-level)",
+  "split_pairs": {
+    "train": 360,
+    "val": 70,
+    "test": 70
+  },
+  "counts": {
+    "train": {
+      "Deepfakes": 2160,
+      "Face2Face": 2160,
+      "FaceSwap": 2156,
+      "NeuralTextures": 2160,
+      "Real": 7920
+    },
+    "val": {
+      "Deepfakes": 420,
+      "Face2Face": 420,
+      "FaceSwap": 420,
+      "NeuralTextures": 417,
+      "Real": 1540
+    },
+    "test": {
+      "Deepfakes": 420,
+      "Face2Face": 420,
+      "FaceSwap": 420,
+      "NeuralTextures": 420,
+      "Real": 1540
+    }
+  },
+  "totals": {
+    "images": 22993,
+    "fake": 11993,
+    "real": 11000
+  },
+  "label_validation": {
+    "criteria": {
+      "centroid_offset_pct_max": 1.0,
+      "iou_mean_min": 0.95,
+      "note": "软边掩码的边界本就模糊,多边形拟合上限约 0.98;几何对齐由质心偏移单独判定"
+    },
+    "per_method": [
+      {
+        "methods": [
+          "Deepfakes"
+        ],
+        "splits": [
+          "train",
+          "val",
+          "test"
+        ],
+        "threshold": 0,
+        "n_total": 102,
+        "mean": 0.9956578483759535,
+        "min": 0.984251968503937,
+        "max": 0.9997356071121687,
+        "centroid_mean_pct": 0.00010810491643970369,
+        "centroid_max_pct": 0.000996049821249913,
+        "align_ok": true,
+        "passed": true
+      },
+      {
+        "methods": [
+          "Face2Face"
+        ],
+        "splits": [
+          "train",
+          "val",
+          "test"
+        ],
+        "threshold": 0,
+        "n_total": 102,
+        "mean": 0.9943321777172155,
+        "min": 0.9916769076080885,
+        "max": 0.9996351696461145,
+        "centroid_mean_pct": 0.01229008744944934,
+        "centroid_max_pct": 0.04854091912278269,
+        "align_ok": true,
+        "passed": true
+      },
+      {
+        "methods": [
+          "FaceSwap"
+        ],
+        "splits": [
+          "train",
+          "val",
+          "test"
+        ],
+        "threshold": 0,
+        "n_total": 750,
+        "mean": 0.9780910897329868,
+        "min": 0.9166973268545184,
+        "max": 0.9967094954559699,
+        "centroid_mean_pct": 0.17555361804900005,
+        "centroid_max_pct": 1.1511498763911745,
+        "align_ok": true,
+        "passed": true
+      },
+      {
+        "methods": [
+          "NeuralTextures"
+        ],
+        "splits": [
+          "train",
+          "val",
+          "test"
+        ],
+        "threshold": 0,
+        "n_total": 750,
+        "mean": 0.9943302126938757,
+        "min": 0.9915012367603222,
+        "max": 1.0,
+        "centroid_mean_pct": 0.01371287720527582,
+        "centroid_max_pct": 0.05879379545445488,
+        "align_ok": true,
+        "passed": true
+      }
+    ]
+  },
+  "environment": {
+    "python": "3.13.9",
+    "torch": "2.6.0+cu124",
+    "ultralytics": "8.4.160",
+    "opencv": "5.0.0",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop (8GB)"
+  },
+  "known_characteristics": [
+    "四类方法 mask 语义不一致:仅 Deepfakes 为二值篡改区域,其余为软边灰度图,不宜同口径横比",
+    "Face2Face 与 NeuralTextures 的 mask 逐像素完全相同",
+    "FF++ 原始分辨率跨度大(272x480 ~ 1920x1080),训练统一 resize 至 640",
+    "mask 视频在处理后删除,复查需 --download-missing",
+    "NeuralTextures_567_606 的视频 337 帧、mask 340 帧,帧数不一致,构建脚本断言拒绝处理,故该视频缺席(少 3 张,占总量 0.013%)"
+  ]
+}

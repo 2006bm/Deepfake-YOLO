@@ -1,0 +1,26 @@
+# 复现环境 —— 全部版本已在本机验证通过(RTX 4060 8GB / CUDA 12.6 驱动)
+#
+# 安装(先装 torch,再装其余,避免 pip 把 GPU 版换成 CPU 版):
+#   pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+#   pip install -r requirements.txt
+#
+# 注意:不要装 opencv-python-headless。它与 opencv-python 共用同一个 cv2 目录,
+# 卸载任一个都会删掉 cv2 模块,导致 ultralytics 导入失败。
+
+# --- 深度学习框架(GPU,cu124 适配 Ada sm_89)---
+torch==2.6.0+cu124
+torchvision==0.21.0+cu124
+
+# --- 检测/分割框架 ---
+ultralytics==8.4.160
+
+# --- 数据管线依赖 ---
+opencv-python==5.0.0.93
+numpy==2.4.2
+pillow==12.3.0
+
+# --- 说明 ---
+# 未固定版本的间接依赖由以上上层包约束。
+# 若需完全冻结,在环境配置完成后执行:
+#   pip freeze > requirements.lock.txt
+# 并把 requirements.lock.txt 一并提交,确保换机器后逐位一致。

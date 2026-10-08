@@ -1,0 +1,46 @@
+# 数据 —— 体积巨大且可由脚本重建,绝不入库
+data/raw/
+data/dataset_v1/images/
+data/dataset_v1/labels/
+
+# 训练输出与权重
+runs/
+weights/
+*.pt
+*.onnx
+*.engine
+
+# 媒体文件全局防护 —— 防止误提交数据集片段或图片。
+# 注意:若将来要提交论文插图,需用 git add -f <file> 强制加入。
+*.mp4
+*.avi
+*.mov
+*.jpg
+*.jpeg
+*.png
+*.tif
+*.tiff
+
+# 下载器中间态与日志
+*.part
+filelist.json
+logs_*.txt
+
+# 调试产物
+_debug/
+
+# 未完成的探索性遗留目录
+data/_spdtest/
+data/scripts/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

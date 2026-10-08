@@ -1,0 +1,45 @@
+# 实验2:创新验证 —— 频域(FFT)增强预处理 + YOLOv8s-seg
+#
+# 创新点定位: 不改 YOLO 网络结构(改 4 通道要动第一层,风险大、8 周不划算),
+# 而是在**输入端**把高频信息以增强图的形式注入,保持 3 通道不变:
+#
+#     I_h = I - 低通(I)                     # 高频残差
+#     I'  = clip(I + lambda * I_h, 0, 255)  # 增强后的 RGB,三通道
+#     YOLOv8s-seg(I')
+#
+# 依据:Deepfake 融合边界会破坏局部高频纹理,强化高频应先验性地帮助定位。
+# 该依据目前是**假设**,必须由实验2验证;若无效则按复盘建议直接放弃,
+# 题目已弱化为"基于YOLOv8-Seg ... 定位与鲁棒性研究",不受影响。
+#
+# 增强图在 data 预处理阶段生成(preprocessing/fft_enhance.py),
+# 训练参数与 baseline 保持完全一致,唯一变量是输入图,保证对比公平。
+
+model: yolov8s-seg.pt
+data: data/dataset_v1/dataset.yaml   # 换为 fft 增强版数据集的 dataset.yaml
+
+imgsz: 640
+batch: 8
+epochs: 100
+patience: 20
+amp: true
+
+optimizer: AdamW
+lr0: 0.001
+lrf: 0.01
+warmup_epochs: 3.0
+
+# 与 baseline 完全一致,确保唯一变量是输入
+seed: 0
+deterministic: true
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+fliplr: 0.5
+mosaic: 1.0
+mixup: 0.0
+copy_paste: 0.0
+
+project: runs/segment
+name: fft
+save_period: -1
+plots: true

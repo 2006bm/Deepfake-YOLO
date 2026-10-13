@@ -70,7 +70,8 @@ def _do_fake(job):
         return 0, 0, f'{method}_{name}: meta_mismatch {vmeta} vs {mmeta}'
     idx = pick_indices(vmeta[0], k)
     vf, mf = read_frames(vp, idx), read_frames(mp, idx)
-    n_new = n_tot = n_empty = 0
+    n_new = n_tot = 0
+    skipped = []
     for i in idx:
         if i not in vf or i not in mf:
             continue
@@ -80,14 +81,18 @@ def _do_fake(job):
             # 实测 FF++ 的 FaceSwap 部分视频存在"隔帧为空"的 mask
             # (如 601_653 的奇数帧有内容、偶数帧全空),若抽到空帧仍保存,
             # 就等于给模型一个"此处无伪造"的错误监督信号。
-            n_empty += 1
+            skipped.append(i)
             continue
         stem = f'{method}_{name}_f{i:05d}'
         n_tot += 1
         if save_sample(out, split, stem, vf[i], label):
             n_new += 1
-    warn = (f'{method}_{name}: {n_empty} 帧 mask 为空已跳过'
-            if n_empty else None)
+    # 记录被跳过的具体帧,便于他人复现时理解为什么样本数少于理论值
+    warn = None
+    if skipped:
+        warn = (f'skip empty mask: method={method} video={name} '
+                f'frames=[{",".join(str(x) for x in skipped)}] '
+                f'reason=empty_polygon')
     return n_new, n_tot, warn
 
 

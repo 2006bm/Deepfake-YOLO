@@ -25,6 +25,18 @@ weights/
 *.part
 filelist.json
 logs_*.txt
+logs_*.csv
+
+# 归档包 —— dataset_v1.tar 有 3GB,且属于 FF++ 数据(见 LICENSE 说明),绝不入库
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.7z
+
+# 评测输出(可由 evaluate/ 重新生成)
+evaluate/*.csv
+evaluate/*.png
 
 # 调试产物
 _debug/

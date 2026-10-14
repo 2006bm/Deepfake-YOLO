@@ -1,0 +1,13 @@
+# Ultralytics YOLO-Seg 数据集配置
+#
+# 注意: path 是绝对路径,换机器后需要改(或用 scripts/build_masks_all.sh 重新生成)。
+# 换成服务器训练时,把 path 指向该机器上的 data/dataset_v1 即可。
+path: D:/科研论文课程/Deepfake-YOLO/data/dataset_v2
+train: images/train
+val: images/val
+test: images/test
+
+# 单类别:模型只需要回答"这里是不是伪造区域"。
+# 四类伪造方法不做成 4 个类别,而是编码在文件名前缀里,便于按方法分组汇报指标。
+names:
+  0: fake_region

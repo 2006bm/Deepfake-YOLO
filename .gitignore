@@ -1,7 +1,9 @@
 # 数据 —— 体积巨大且可由脚本重建,绝不入库
 data/raw/
-data/dataset_v1/images/
-data/dataset_v1/labels/
+# 用通配符覆盖所有版本的数据集:此前写死 dataset_v1,新增 dataset_v2 时
+# 其 labels 被 git add -A 暂存(实测踩过),通配符可避免重复踩坑。
+data/dataset_*/images/
+data/dataset_*/labels/
 
 # 训练输出与权重
 runs/

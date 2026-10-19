@@ -67,14 +67,20 @@ def load_pairs(cache='filelist.json'):
     return pairs
 
 
-def build_tasks(datasets, ftype, compression, pairs, outdir):
+def build_tasks(datasets, ftype, compression, pairs, outdir, video_list=None):
     """生成 (url, 本地目标路径) 列表。
 
     目录布局与官方脚本输出保持一致,便于后续脚本对接:
       original     : data/raw/original_sequences/youtube/{c}/videos/{id}.mp4
       manipulated  : data/raw/manipulated_sequences/{M}/{c}/videos/{src}_{tgt}.mp4
       masks        : data/raw/manipulated_sequences/{M}/masks/videos/{src}_{tgt}.mp4
+
+    video_list: 可选 set, 精确筛选下载目标(格式 'method:identifier')。
+      original   : 'original:{vid}'(纯数字 ID)
+      manipulated: '{method}:{src}_{tgt}'(双 ID 文件名, 不能只匹配单个 ID, 且区分方法)
     """
+    if video_list is not None:
+        video_list = set(video_list)
     tasks = []
     for ds in datasets:
         if ds == 'original':
@@ -82,6 +88,8 @@ def build_tasks(datasets, ftype, compression, pairs, outdir):
                 continue  # FF++ 不为原始视频提供 mask
             for pair in pairs:
                 for vid in pair:
+                    if video_list is not None and f'original:{vid}' not in video_list:
+                        continue
                     url = (BASE_URL + 'original_sequences/youtube/'
                            f'{compression}/videos/{vid}.mp4')
                     dest = os.path.join(outdir, 'original_sequences', 'youtube',
@@ -90,7 +98,10 @@ def build_tasks(datasets, ftype, compression, pairs, outdir):
         else:
             for pair in pairs:
                 for src, tgt in (pair, pair[::-1]):
-                    name = f'{src}_{tgt}.mp4'
+                    stem = f'{src}_{tgt}'
+                    if video_list is not None and f'{ds}:{stem}' not in video_list:
+                        continue
+                    name = f'{stem}.mp4'
                     if ftype == 'videos':
                         url = (BASE_URL + f'manipulated_sequences/{ds}/'
                                f'{compression}/videos/{name}')
@@ -180,27 +191,59 @@ def main():
                     help='只下载前 N 个文件,用于阶段1小批量验证')
     ap.add_argument('--outdir', default='data/raw')
     ap.add_argument('--min-free-gb', type=float, default=3.0)
+    ap.add_argument('--video-list', default=None,
+                    help='精确筛选文件: 每行一个视频标识(original 用纯数字 ID, '
+                         'manipulated 用 src_tgt), 只下载匹配的')
+    ap.add_argument('--list-format', default='text', choices=['text', 'csv', 'json'],
+                    help='--list-only 的输出格式')
     ap.add_argument('--list-only', action='store_true')
     args = ap.parse_args()
 
     datasets = MANIPULATIONS + ['original'] if args.dataset == 'all' \
         else [args.dataset]
 
+    video_list = None
+    if args.video_list:
+        with open(args.video_list) as f:
+            video_list = {ln.strip() for ln in f if ln.strip()}
+        print(f'video-list 加载 {len(video_list)} 个标识')
+
     pairs = load_pairs()
     tasks = build_tasks(datasets, args.type, args.compression, pairs,
-                        args.outdir)
+                        args.outdir, video_list)
     if args.limit:
         tasks = tasks[:args.limit]
 
-    total_mb = 0  # 体积未知时不做预估
     print(f'任务数 : {len(tasks)}')
     print(f'目标目录: {os.path.abspath(args.outdir)}')
     print(f'并发数 : {args.workers}   磁盘剩余: {free_gb("."):.1f} GB')
     if args.list_only:
-        for url, dest in tasks[:20]:
-            print(f'  {url}\n    -> {dest}')
-        if len(tasks) > 20:
-            print(f'  ... 其余 {len(tasks) - 20} 个')
+        if args.list_format == 'text':
+            for url, dest in tasks[:20]:
+                print(f'  {url}\n    -> {dest}')
+            if len(tasks) > 20:
+                print(f'  ... 其余 {len(tasks) - 20} 个')
+            return
+        # 结构化清单: 方法 / 文件名 / 压缩 / 目标路径 / 下载地址
+        rows = []
+        for url, dest in tasks:
+            parts = dest.replace('\\', '/').split('/')
+            # data/raw/[original_sequences|manipulated_sequences]/...
+            if 'original_sequences' in parts:
+                method = 'original'
+            else:
+                method = parts[parts.index('manipulated_sequences') + 1]
+            filename = os.path.basename(dest)
+            rows.append(dict(method=method, filename=filename,
+                             compression=args.compression, dest=dest, url=url))
+        if args.list_format == 'csv':
+            import csv as _csv
+            w = _csv.DictWriter(sys.stdout, fieldnames=['method', 'filename',
+                                                        'compression', 'dest', 'url'])
+            w.writeheader(); w.writerows(rows)
+        else:
+            import json as _json
+            print(_json.dumps(rows, ensure_ascii=False, indent=1))
         return
 
     if free_gb('.') < args.min_free_gb:

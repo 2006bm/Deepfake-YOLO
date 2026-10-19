@@ -50,8 +50,12 @@ data/scripts/
 # Python
 __pycache__/
 *.py[cod]
+*.npz
 .venv/
 venv/
+
+# c40 评测数据集(临时评测数据, 由 preprocessing/extract_c40.py 重建)
+data/dataset_c40/
 
 # 编辑器 / 系统
 .vscode/

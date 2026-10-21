@@ -1,12 +1,16 @@
 # Deepfake-YOLO
 
-**基于 YOLOv8-Seg 的 Deepfake 人脸伪造区域定位与鲁棒性研究**
+**YOLOv8 深度伪造区域定位与实例级判别差异研究**
 
-Deepfake Facial Manipulation Localization and Robustness Analysis Based on
-YOLOv8 Segmentation
+Localization and Instance-Level Discrimination Discrepancy of Deepfake
+Forgery Regions with YOLOv8 Segmentation
 
-> 题目刻意不写"频域增强":FFT 是否有效尚未验证。若实验证明有效,升级为
-> "基于 YOLOv8-Seg 与频域增强的...";若无效,本题仍然成立,不影响交付。
+> 本项目最初计划以"频域增强"作为创新点。经配对频谱分析与 λ=1.0 训练实验验证，
+> 该假设未获支持（详见 `RESULTS.md` 第 4 节），因而不构成论文的方法贡献。
+> 研究重心转为：在整脸区域标注的定位任务中，**空间掩码响应与实例级判别之间的差异**。
+> 该现象在独立测试集、c40 强压缩与更小规模模型上均稳定复现。
+
+完整结果见 [RESULTS.md](RESULTS.md)。
 
 ## 快速开始
 
@@ -57,15 +61,15 @@ FaceForensics++
         ↓  抽帧(视频与 mask 用同一组帧下标)
         ↓  mask → YOLO-Seg polygon 标签
         ↓  官方视频级划分 720/140/140
-   YOLOv8n-seg  小规模验证(仅工程验证,不进论文)
+   YOLOv8n-seg  规模复验(检验机制是否随模型规模变化)
         ↓
-   YOLOv8s-seg  Baseline  (640×640, batch 8, AMP)
+   YOLOv8s-seg  Baseline  (640×640, batch 16, AMP)
         ↓
-   FFT 高频增强预处理 → YOLOv8s-seg(可选创新,实验2验证)
+   频域增强 λ=1.0 实验  →  结果: 未获支持,作为证伪章节保留
         ↓
    ┌────────────┼────────────┐
-   定位实验    压缩鲁棒性    跨方法/跨数据集泛化
-   mAP/IoU/Dice  c23→c40     FF++→Celeb-DF v2
+   定位评测    压缩鲁棒性    NT 失败机制诊断
+   mAP/IoU/Dice  c23→c40     像素AUROC/配对对照/特征归因
 ```
 
 ## 目录结构
@@ -251,11 +255,14 @@ YOLO-Seg 输出的是 polygon。只报 mAP 会被问"你在做检测还是定位
 - [x] 项目结构、下载器、数据管线、标签验证、一致性校验
 - [x] 全部视频下载(10,000 个 / 9.8 GB,完整性扫描通过)
 - [x] GPU 环境(torch 2.6.0+cu124 / CUDA 可用 / RTX 4060 8GB)
-- [x] Deepfakes / Face2Face / FaceSwap 标签与验证
-- [ ] NeuralTextures 标签(进行中)
-- [ ] dataset_v1 冻结
-- [ ] YOLOv8s-seg baseline 训练
-- [ ] 频域增强对比实验
+- [x] 四类伪造方法标签与双判据验证(1,704 抽样,IoU 0.978–0.996)
+- [x] dataset_v1 冻结(22,993 张,官方视频级划分)
+- [x] YOLOv8s-seg baseline 训练(Mask mAP50 0.9744 / test IoU 0.8564)
+- [x] 频域增强对比实验(λ=1.0,**负结果**,作为证伪章节保留)
+- [x] 独立 test 集机制复验(像素 AUROC / 命中率 / 配对频谱)
+- [x] c40 压缩鲁棒性(c23→c40,test)
+- [x] YOLOv8n-seg 规模复验(机制稳定复现)
+- [ ] 论文图表与最终整理
 
 ## 许可
 
